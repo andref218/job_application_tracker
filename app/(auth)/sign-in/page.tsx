@@ -18,11 +18,13 @@ import { validateUserSignin } from "@/actions/auth";
 
 const SignIn = () => {
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (formData: FormData) => {
     setError("");
+    setSuccess("");
     setLoading(true);
 
     // Server side validation in the actions/auth.ts
@@ -50,8 +52,12 @@ const SignIn = () => {
         return;
       }
 
+      setSuccess("Login successful!");
+
       // Redirect only if login succeeds
-      router.push("/dashboard");
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 1000);
     } catch (err: any) {
       // Catch all possible error formats from Better Auth
       if (err.response?.data?.error) {
@@ -125,6 +131,11 @@ const SignIn = () => {
             {error && (
               <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
                 {error}
+              </div>
+            )}
+            {success && (
+              <div className="rounded-md bg-green-100 p-3 text-sm text-green-700">
+                {success}
               </div>
             )}
           </CardContent>
