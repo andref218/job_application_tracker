@@ -1,12 +1,8 @@
 "use server";
 
-import { auth } from "@/lib/auth/auth-server";
-import { redirect } from "next/navigation";
+import { db } from "@/lib/auth/auth-server";
 
-export async function registerUser(
-  prevState: { error: string },
-  formData: FormData,
-) {
+export async function validateUserSignup(formData: FormData) {
   const firstName = formData.get("firstName") as string;
   const lastName = formData.get("lastName") as string;
   const email = formData.get("email") as string;
@@ -24,28 +20,15 @@ export async function registerUser(
     return { error: "Password must be at least 8 characters" };
   }
 
-  const name = `${firstName} ${lastName}`;
-  try {
-    const result = await auth.api.signUpEmail({
-      body: {
-        name,
-        email,
-        password,
-      },
-    });
-  } catch (err: any) {
-    if (err.response?.data?.error) {
-      return { error: err.response.data.error };
-    }
-    return { error: err.message || "Failed to sign up." };
+  const existingUser = await db.collection("user").findOne({ email });
+  if (existingUser) {
+    return { error: "Email already exists" };
   }
-  redirect("/dashboard");
+
+  return { firstName, lastName, email, password };
 }
 
-export async function loginUser(
-  prevState: { error: string },
-  formData: FormData,
-) {
+export async function validateUserSignin(formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
 
@@ -61,18 +44,5 @@ export async function loginUser(
     return { error: "Password must be at least 8 characters" };
   }
 
-  try {
-    const result = await auth.api.signInEmail({
-      body: {
-        email,
-        password,
-      },
-    });
-  } catch (err: any) {
-    if (err.response?.data?.error) {
-      return { error: err.response.data.error };
-    }
-    return { error: err.message || "Failed to sign in." };
-  }
-  redirect("/dashboard");
+  return { email, password };
 }

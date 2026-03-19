@@ -1,8 +1,6 @@
 "use client";
 
-import { loginUser } from "@/actions/auth";
-import SubmitButton from "@/components/SubmitButton";
-import { Button } from "@/components/ui/button";
+import { signIn } from "@/lib/auth/auth-client";
 import {
   Card,
   CardContent,
@@ -11,17 +9,66 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import Link from "next/link";
-import { useActionState } from "react";
 
-const initialState = { error: "" };
+import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { validateUserSignin } from "@/actions/auth";
 
 const SignIn = () => {
-  const [state, formAction] = useActionState(loginUser, initialState);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+
+  const handleSubmit = async (formData: FormData) => {
+    setError("");
+    setLoading(true);
+
+    // Server side validation in the actions/auth.ts
+    const validation = await validateUserSignin(formData);
+    if ("error" in validation) {
+      setError(validation.error || "Unknown error");
+      setLoading(false);
+      return;
+    }
+
+    const { email, password } = validation;
+
+    try {
+      // Client-side login: sets the auth cookie
+      const result = await signIn.email({ email, password });
+
+      // Better Auth might return an object with error in data
+      if (result?.error) {
+        setError(
+          result.error?.message ||
+            result.error?.statusText ||
+            "Failed to sign in",
+        );
+        setLoading(false);
+        return;
+      }
+
+      // Redirect only if login succeeds
+      router.push("/dashboard");
+    } catch (err: any) {
+      // Catch all possible error formats from Better Auth
+      if (err.response?.data?.error) {
+        setError(err.response.data.error);
+      } else if (err.message) {
+        setError(err.message);
+      } else {
+        setError("Failed to sign in.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-6">
       <Card className="w-full max-w-md rounded-2xl shadow-lg">
-        <CardHeader className="pb-3 text-center">
+        <CardHeader className="pb-4 text-center">
           <CardTitle className="text-3xl font-bold text-left mb-1">
             Sign In
           </CardTitle>
@@ -30,7 +77,14 @@ const SignIn = () => {
           </CardDescription>
         </CardHeader>
 
-        <form action={formAction} className="space-y-6">
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.currentTarget);
+            await handleSubmit(formData);
+          }}
+          className="space-y-6"
+        >
           <CardContent className="space-y-4">
             {/* Email */}
             <div className="flex flex-col">
@@ -63,23 +117,29 @@ const SignIn = () => {
                 id="password"
                 type="password"
                 placeholder="Enter your password"
-                minLength={8}
                 required
-                className="rounded-lg border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-1  focus:border-primary transition"
+                className="rounded-lg border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-1 focus:border-primary transition"
               />
             </div>
-            {state.error && (
+
+            {error && (
               <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
-                {state.error}
+                {error}
               </div>
             )}
           </CardContent>
 
           <CardFooter className="flex flex-col items-center gap-3">
-            <SubmitButton label="Sign In" pendingLabel="Signing in..." />
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-primary text-white hover:bg-primary/90 transition cursor-pointer"
+            >
+              {loading ? "Signing in..." : "Sign In"}
+            </Button>
 
             <p className="text-sm text-gray-500 hover:text-gray-700 transition">
-              Don't have an account ?
+              Don't have an account?
               <Link
                 href="/sign-up"
                 className="font-medium text-primary hover:underline pl-1"

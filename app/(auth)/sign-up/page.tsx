@@ -1,8 +1,7 @@
 "use client";
 
-import { registerUser } from "@/actions/auth";
 import SubmitButton from "@/components/SubmitButton";
-import { Button } from "@/components/ui/button";
+import { signUp } from "@/lib/auth/auth-client";
 import {
   Card,
   CardContent,
@@ -13,23 +12,48 @@ import {
 } from "@/components/ui/card";
 
 import Link from "next/link";
-import { useActionState } from "react";
-
-//import { useState } from "react";
-import { useFormStatus } from "react-dom";
-
-const initialState = { error: "" };
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { auth } from "@/lib/auth/auth-server";
+import { validateUserSignup } from "@/actions/auth";
+import { Button } from "@/components/ui/button";
 
 const SignUp = () => {
-  const [state, formAction] = useActionState(registerUser, initialState);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
-  //const [firstName, setFirstName] = useState("");
-  //const [lastName, setLastName] = useState("");
-  //const [email, setEmail] = useState("");
-  //const [password, setPassword] = useState("");
+  const handleSubmit = async (formData: FormData) => {
+    setError("");
+    setLoading(true);
 
-  //const [error, setError] = useState("");
-  //const [loading, setLoading] = useState(false);
+    // Server side validation in the actions/auth.ts
+    const validation = await validateUserSignup(formData);
+    if ("error" in validation) {
+      setError(validation.error || "Unknown error");
+      setLoading(false);
+      return;
+    }
+
+    const { firstName, lastName, email, password } = validation;
+    const name = `${firstName} ${lastName}`;
+
+    try {
+      // Create user client-side to ensure the authentication cookie is set in the browser
+      await signUp.email({ name, email, password });
+
+      // Redirect to /dashboard
+      router.push("/dashboard");
+    } catch (err: any) {
+      if (err.response?.data?.error) {
+        setError(err.response.data.error);
+      } else {
+        setError(err.message || "Failed to sign up.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-6">
@@ -43,7 +67,14 @@ const SignUp = () => {
           </CardDescription>
         </CardHeader>
 
-        <form action={formAction} className="space-y-6">
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.currentTarget);
+            await handleSubmit(formData);
+          }}
+          className="space-y-6"
+        >
           <CardContent className="space-y-4">
             {/* Name fields */}
             <div className="flex flex-col md:flex-row gap-4">
@@ -125,15 +156,21 @@ const SignUp = () => {
                 className="rounded-lg border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-1  focus:border-primary transition"
               />
             </div>
-            {state.error && (
+            {error && (
               <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
-                {state.error}
+                {error}
               </div>
             )}
           </CardContent>
 
           <CardFooter className="flex flex-col items-center gap-3">
-            <SubmitButton label="Sign Up" pendingLabel="Signing up..." />
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-primary text-white hover:bg-primary/90 transition cursor-pointer"
+            >
+              {loading ? "Signing up..." : "Sign Up"}
+            </Button>
             <p className="text-sm text-gray-500 hover:text-gray-700 transition">
               Already have an account?
               <Link
