@@ -35,7 +35,11 @@ export default async function NavBar() {
                 </Button>
               </Link>
               <DropdownMenu>
-                <DropdownMenuTrigger>
+                <DropdownMenuTrigger
+                  className="relative h-8 w-8 rounded-full focus:outline-none 
+                data-[state=open]:rounded-full data-[state=open]:outline-none 
+                data-[state=open]:shadow-none"
+                >
                   <Button
                     variant="ghost"
                     className="relative h-8 w-8 rounded-full cursor-pointer"
