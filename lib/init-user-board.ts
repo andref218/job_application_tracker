@@ -57,9 +57,8 @@ export async function initializeUserBoard(userId: string) {
     );
     //Update the board with the new column ID's
     board.columns = columns.map((col) => col._id);
-
-    return board;
     await board.save();
+    return board;
   } catch (err) {
     throw err;
   }
