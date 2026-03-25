@@ -20,11 +20,13 @@ import { Button } from "@/components/ui/button";
 
 const SignUp = () => {
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (formData: FormData) => {
     setError("");
+    setSuccess("");
     setLoading(true);
 
     // Server side validation in the actions/auth.ts
@@ -42,13 +44,20 @@ const SignUp = () => {
       // Create user client-side to ensure the authentication cookie is set in the browser
       await signUp.email({ name, email, password });
 
-      // Redirect to /dashboard
-      router.push("/dashboard");
+      setSuccess("Account created successfully!");
+
+      // Redirect only if sign up succeeds
+      setTimeout(() => {
+        router.push("/dashboard");
+      }, 1000);
     } catch (err: any) {
+      // Catch all possible error formats from Better Auth
       if (err.response?.data?.error) {
         setError(err.response.data.error);
+      } else if (err.message) {
+        setError(err.message);
       } else {
-        setError(err.message || "Failed to sign up.");
+        setError("Failed to sign up.");
       }
     } finally {
       setLoading(false);
@@ -159,6 +168,11 @@ const SignUp = () => {
             {error && (
               <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
                 {error}
+              </div>
+            )}
+            {success && (
+              <div className="rounded-md bg-green-100 p-3 text-sm text-green-700">
+                {success}
               </div>
             )}
           </CardContent>

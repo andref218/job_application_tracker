@@ -1,6 +1,17 @@
+"use client";
+
 import { Column, JobApplication } from "@/lib/models/models.types";
 import { Card, CardContent } from "./ui/card";
-import { Edit2, ExternalLink, MoreVertical, Trash2 } from "lucide-react";
+import { Edit2, ExternalLink, MoreVertical, Plus, Trash2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,6 +19,14 @@ import {
   DropdownMenuTrigger,
 } from "@radix-ui/react-dropdown-menu";
 import { Button } from "./ui/button";
+import {
+  deleteJobApplication,
+  updateJobApplication,
+} from "@/actions/job-applications";
+import { Input } from "@base-ui/react";
+import { Label } from "./ui/label";
+import { Textarea } from "./ui/textarea";
+import { useState } from "react";
 
 interface JobApplicationcardProps {
   job: JobApplication;
@@ -15,13 +34,67 @@ interface JobApplicationcardProps {
 }
 
 const JobApplicationCard = ({ job, columns }: JobApplicationcardProps) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    company: job.company,
+    position: job.position,
+    location: job.location || "",
+    notes: job.notes || "",
+    salary: job.salary || "",
+    jobUrl: job.jobUrl || "",
+    columnId: job.columnId || "",
+    tags: job.tags?.join(", ") || "",
+    description: job.description || "",
+  });
+
+  async function handleUpdate(e: React.FormEvent) {
+    e.preventDefault();
+    try {
+      const result = await updateJobApplication(job._id, {
+        ...formData,
+        tags: formData.tags
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter((tag) => tag.length > 0),
+      });
+
+      if (!result.error) {
+        setIsEditing(false);
+      }
+    } catch (error) {
+      console.error("Failed to move job application", error);
+    }
+  }
+
+  async function handleDelete() {
+    try {
+      const result = await deleteJobApplication(job._id);
+      if (result.error) {
+        console.error("Failed to delete job application:", result.error);
+      }
+    } catch (error) {
+      console.error("Failed to move job application", error);
+    }
+  }
+
+  async function handleMove(newColumnId: string) {
+    try {
+      const result = await updateJobApplication(job._id, {
+        columnId: newColumnId,
+      });
+    } catch (error) {
+      console.error("Failed to move job application", error);
+    }
+  }
   return (
     <>
       <Card>
         <CardContent className="p-4">
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-sm mb-1">{job.position}</h3>
+              <h3 className="font-semibold text-sm mb-1 truncate">
+                {job.position}
+              </h3>
               <p className="text-xs text-muted-foreground mb-2">
                 {job.company}
               </p>
@@ -74,6 +147,7 @@ const JobApplicationCard = ({ job, columns }: JobApplicationcardProps) => {
                   <DropdownMenuItem
                     className="flex items-center gap-2 px-2 py-2 text-sm cursor-pointer 
                   rounded-md hover:bg-gray-200 outline-none"
+                    onClick={() => setIsEditing(true)}
                   >
                     <Edit2 className="h-4 w-4 text-gray-500" />
                     Edit
@@ -91,6 +165,7 @@ const JobApplicationCard = ({ job, columns }: JobApplicationcardProps) => {
                             key={column._id}
                             className="flex items-center px-2 py-2 text-sm cursor-pointer rounded-md 
                             hover:bg-gray-200 outline-none"
+                            onClick={() => handleMove(column._id)}
                           >
                             <span className="truncate">
                               Move to{" "}
@@ -108,6 +183,7 @@ const JobApplicationCard = ({ job, columns }: JobApplicationcardProps) => {
                   <DropdownMenuItem
                     className="flex items-center gap-2 px-2 py-2 text-sm cursor-pointer 
                   rounded-md text-red-500 hover:bg-red-50 outline-none"
+                    onClick={() => handleDelete()}
                   >
                     <Trash2 className="h-4 w-4" />
                     Delete
@@ -118,6 +194,191 @@ const JobApplicationCard = ({ job, columns }: JobApplicationcardProps) => {
           </div>
         </CardContent>
       </Card>
+
+      <Dialog open={isEditing} onOpenChange={setIsEditing}>
+        <DialogContent className="p-6 sm:max-w-2xl w-full">
+          <DialogHeader>
+            <DialogTitle>Add Job Application</DialogTitle>
+            <DialogDescription>Track a new job application</DialogDescription>
+          </DialogHeader>
+          <form className="space-y-6" onSubmit={handleUpdate}>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Label
+                  htmlFor="company"
+                  className="text-sm font-medium text-gray-700 mb-2"
+                >
+                  Company <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="company"
+                  required
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 
+                placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition"
+                  placeholder="Company Name"
+                  value={formData.company}
+                  onChange={(e) =>
+                    setFormData({ ...formData, company: e.target.value })
+                  }
+                />
+              </div>
+              <div className="space-y-1">
+                <Label
+                  htmlFor="position"
+                  className="text-sm font-medium text-gray-700  mb-2"
+                >
+                  Position <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="position"
+                  required
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 
+                placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary 
+                transition"
+                  placeholder="Job Title"
+                  value={formData.position}
+                  onChange={(e) =>
+                    setFormData({ ...formData, position: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <Label
+                  htmlFor="location"
+                  className="text-sm font-medium text-gray-700 mb-2 "
+                >
+                  Location
+                </Label>
+                <Input
+                  id="location"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 
+                placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition"
+                  placeholder="City, Country"
+                  value={formData.location}
+                  onChange={(e) =>
+                    setFormData({ ...formData, location: e.target.value })
+                  }
+                />
+              </div>
+              <div className="space-y-1">
+                <Label
+                  htmlFor="salary"
+                  className="text-sm font-medium text-gray-700 mb-2"
+                >
+                  Salary
+                </Label>
+                <Input
+                  id="salary"
+                  placeholder="e.g., $100k - $150k"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 
+                placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary 
+                transition"
+                  value={formData.salary}
+                  onChange={(e) =>
+                    setFormData({ ...formData, salary: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <Label
+                htmlFor="jobUrl"
+                className="text-sm font-medium text-gray-700 mb-2"
+              >
+                Job URL
+              </Label>
+              <Input
+                id="jobUrl"
+                type="url"
+                placeholder="https://..."
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 
+              placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary 
+              transition"
+                value={formData.jobUrl}
+                onChange={(e) =>
+                  setFormData({ ...formData, jobUrl: e.target.value })
+                }
+              />
+            </div>
+
+            <div className="space-y-1">
+              <Label
+                htmlFor="tags"
+                className="text-sm font-medium text-gray-700 mb-2"
+              >
+                Tags (comma-separated)
+              </Label>
+              <Input
+                id="tags"
+                placeholder="React, Tailwind, High Pay"
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 
+              placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary 
+              transition"
+                value={formData.tags}
+                onChange={(e) =>
+                  setFormData({ ...formData, tags: e.target.value })
+                }
+              />
+            </div>
+
+            <div className="space-y-1">
+              <Label
+                htmlFor="description"
+                className="text-sm font-medium text-gray-700 mb-2"
+              >
+                Description
+              </Label>
+              <Textarea
+                id="description"
+                rows={3}
+                placeholder="Brief description of the role..."
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 
+              placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary 
+              transition"
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
+              />
+            </div>
+
+            <div className="space-y-1">
+              <Label
+                htmlFor="notes"
+                className="text-sm font-medium text-gray-700 mb-2"
+              >
+                Notes
+              </Label>
+              <Textarea
+                id="notes"
+                rows={4}
+                className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 
+              placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary
+            transition"
+                value={formData.notes}
+                onChange={(e) =>
+                  setFormData({ ...formData, notes: e.target.value })
+                }
+              />
+            </div>
+
+            <DialogFooter className="flex justify-end gap-2 mt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsEditing(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit">Save changes</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

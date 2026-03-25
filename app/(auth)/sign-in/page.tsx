@@ -52,7 +52,7 @@ const SignIn = () => {
         return;
       }
 
-      setSuccess("Login successful!");
+      setSuccess("Logged in successfully!");
 
       // Redirect only if login succeeds
       setTimeout(() => {

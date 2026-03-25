@@ -21,6 +21,7 @@ import {
 import { Button } from "./ui/button";
 import CreateJobApplicationDialog from "./CreateJobDialog";
 import JobApplicationCard from "./JobApplicationCard";
+import { useBoard } from "@/lib/hooks/useBoard";
 
 type KanbanBoardProps = {
   board: Board;
@@ -68,7 +69,7 @@ function DropableColumn({
   const sortedJobs =
     column.jobApplications?.sort((a, b) => a.order - b.order) || [];
   return (
-    <Card className="min-w-[300px] flex-shrink-0 shadow-md p-0">
+    <Card className="w-full md:min-w-[260px] md:max-w-[400px] md:flex-shrink-0 shadow-md p-0">
       <CardHeader
         className={`${config.color} text-white rounded-t-lg pb-3 pt-3`}
       >
@@ -106,14 +107,16 @@ function DropableColumn({
         </div>
       </CardHeader>
       <CardContent className="space-y-2 pt-4 bg-gray-50/50 min-h-[400px] rounded-b-lg">
-        {sortedJobs.map((job, key) => (
-          <SortableJobCard
-            key={key}
-            job={{ ...job, columnId: job.columnId || column._id }}
-            columns={sortedColumns}
-          />
-        ))}
-        <div className="mb-5 mt-5">
+        <div className="space-y-3">
+          {sortedJobs.map((job, key) => (
+            <SortableJobCard
+              key={key}
+              job={{ ...job, columnId: job.columnId || column._id }}
+              columns={sortedColumns}
+            />
+          ))}
+        </div>
+        <div className="mb-5 mt-3">
           <CreateJobApplicationDialog columnId={column._id} boardId={boardId} />
         </div>
       </CardContent>
@@ -136,13 +139,13 @@ function SortableJobCard({
 }
 
 export default function KanbanBoard({ board, userId }: KanbanBoardProps) {
-  const columns = board.columns;
+  const { columns, moveJob } = useBoard(board);
 
   const sortedColumns = columns?.sort((a, b) => a.order - b.order) || [];
   return (
     <>
-      <div>
-        <div className="space-y-6">
+      <div className="space-y-4">
+        <div className="flex flex-col md:flex-row gap-4 md:overflow-x-auto pb-4 px-1">
           {columns.map((col, key) => {
             const config = COLUMN_CONFIG[key] || {
               color: "bg-cyan-500",

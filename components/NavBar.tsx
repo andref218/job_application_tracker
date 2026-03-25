@@ -18,7 +18,7 @@ export default async function NavBar() {
       <div className="container mx-auto flex h-16 items-center px-4 justify-between">
         <Link
           href="/"
-          className="flex items-center gap-2 text-lg font-semibold text-primary"
+          className="flex items-center gap-2 text-lg font-bold text-primary"
         >
           <Briefcase />
           Job Tracker
