@@ -26,7 +26,8 @@ import {
 import { Input } from "@base-ui/react";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { toast } from "sonner";
 
 interface JobApplicationcardProps {
   job: JobApplication;
@@ -35,6 +36,10 @@ interface JobApplicationcardProps {
 
 const JobApplicationCard = ({ job, columns }: JobApplicationcardProps) => {
   const [isEditing, setIsEditing] = useState(false);
+
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
   const [formData, setFormData] = useState({
     company: job.company,
     position: job.position,
@@ -59,31 +64,49 @@ const JobApplicationCard = ({ job, columns }: JobApplicationcardProps) => {
       });
 
       if (!result.error) {
+        toast.success("Job updated successfully!");
         setIsEditing(false);
+      } else {
+        toast.error(result.error || "Failed to update job.");
       }
     } catch (error) {
       console.error("Failed to move job application", error);
+      toast.error("Failed to delete job");
     }
   }
 
   async function handleDelete() {
-    try {
-      const result = await deleteJobApplication(job._id);
-      if (result.error) {
-        console.error("Failed to delete job application:", result.error);
+    startTransition(async () => {
+      try {
+        const result = await deleteJobApplication(job._id);
+        if (!result.error) {
+          toast.success("Job deleted successfully.");
+          setIsDialogOpen(false);
+        } else {
+          toast.error("Failed to delete job");
+        }
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to delete job");
       }
-    } catch (error) {
-      console.error("Failed to move job application", error);
-    }
+    });
   }
 
   async function handleMove(newColumnId: string) {
     try {
+      const column = columns.find((c) => c._id === newColumnId);
       const result = await updateJobApplication(job._id, {
         columnId: newColumnId,
       });
+
+      if (!result.error) {
+        toast.success(`Job moved to "${column?.name || "New Column"}" column`);
+      } else {
+        toast.error(result.error || "Failed to move job");
+      }
     } catch (error) {
       console.error("Failed to move job application", error);
+      toast.error("Failed to move job");
     }
   }
   return (
@@ -183,7 +206,7 @@ const JobApplicationCard = ({ job, columns }: JobApplicationcardProps) => {
                   <DropdownMenuItem
                     className="flex items-center gap-2 px-2 py-2 text-sm cursor-pointer 
                   rounded-md text-red-500 hover:bg-red-50 outline-none"
-                    onClick={() => handleDelete()}
+                    onClick={() => setIsDialogOpen(true)}
                   >
                     <Trash2 className="h-4 w-4" />
                     Delete
@@ -214,7 +237,8 @@ const JobApplicationCard = ({ job, columns }: JobApplicationcardProps) => {
                   id="company"
                   required
                   className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 
-                placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition"
+                placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary 
+                transition"
                   placeholder="Company Name"
                   value={formData.company}
                   onChange={(e) =>
@@ -233,8 +257,8 @@ const JobApplicationCard = ({ job, columns }: JobApplicationcardProps) => {
                   id="position"
                   required
                   className="w-full border border-gray-300 rounded-md px-3 py-2 text-gray-900 
-                placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary 
-                transition"
+                placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary 
+                focus:border-primary transition"
                   placeholder="Job Title"
                   value={formData.position}
                   onChange={(e) =>
@@ -377,6 +401,42 @@ const JobApplicationCard = ({ job, columns }: JobApplicationcardProps) => {
               <Button type="submit">Save changes</Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-sm w-full p-6">
+          <DialogHeader>
+            <DialogTitle className="text-xl">Confirm Delete Job</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this job application? This action
+              cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="flex justify-end gap-2 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => setIsDialogOpen(false)}
+              disabled={isPending}
+              className="cursor-pointer"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={isPending}
+              className="flex items-center gap-2 cursor-pointer"
+            >
+              {isPending && (
+                <span
+                  className="h-4 w-4 border-2 border-white border-t-transparent rounded-full 
+                animate-spin"
+                />
+              )}
+              {isPending ? "Deleting..." : "Confirm"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>

@@ -14,9 +14,10 @@ import {
 import { Input } from "@base-ui/react";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { createJobApplication } from "@/actions/job-applications";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface CreateJobApplicationDialogProps {
   columnId: string;
@@ -38,32 +39,39 @@ export default function CreateJobApplicationDialog({
   boardId,
 }: CreateJobApplicationDialogProps) {
   const [open, setOpen] = useState<boolean>(false);
+  const [isPending, startTransition] = useTransition();
   const [formData, setFormData] = useState(INITIAL_FORM_DATA);
   const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    try {
-      const result = await createJobApplication({
-        ...formData,
-        columnId,
-        boardId,
-        tags: formData.tags
-          .split(",")
-          .map((tag) => tag.trim())
-          .filter((tag) => tag.length > 0),
-      });
-      router.refresh();
+    startTransition(async () => {
+      try {
+        const result = await createJobApplication({
+          ...formData,
+          columnId,
+          boardId,
+          tags: formData.tags
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter((tag) => tag.length > 0),
+        });
 
-      if (!result.error) {
-        setFormData(INITIAL_FORM_DATA);
-        setOpen(false);
-      } else {
-        console.error("Failed to create job", result.error);
+        router.refresh();
+
+        if (!result.error) {
+          toast.success("Job added successfully!");
+          setFormData(INITIAL_FORM_DATA);
+          setOpen(false);
+        } else {
+          toast.error("Failed to create job");
+          console.error("Failed to create job", result.error);
+        }
+      } catch (error) {
+        toast.error("Failed to create job");
+        console.log(error);
       }
-    } catch (error) {
-      console.log(error);
-    }
+    });
   }
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -248,10 +256,20 @@ export default function CreateJobApplicationDialog({
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
+              className="cursor-pointer"
             >
               Cancel
             </Button>
-            <Button type="submit">Add Application</Button>
+            <Button
+              type="submit"
+              className="cursor-pointer flex items-center justify-center gap-2"
+              disabled={isPending}
+            >
+              {isPending && (
+                <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              )}
+              {isPending ? "Adding application..." : "Add Application"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
