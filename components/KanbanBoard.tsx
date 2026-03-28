@@ -22,6 +22,8 @@ import { Button } from "./ui/button";
 import CreateJobApplicationDialog from "./CreateJobDialog";
 import JobApplicationCard from "./JobApplicationCard";
 import { useBoard } from "@/lib/hooks/useBoard";
+import { useState } from "react";
+import { updateColumnName } from "@/actions/columns";
 
 type KanbanBoardProps = {
   board: Board;
@@ -68,6 +70,22 @@ function DropableColumn({
 }) {
   const sortedJobs =
     column.jobApplications?.sort((a, b) => a.order - b.order) || [];
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [value, setValue] = useState(column.name);
+
+  async function handleSave() {
+    if (value.trim() === column.name) {
+      setIsEditing(false);
+      return;
+    }
+
+    await updateColumnName(column._id, value.trim());
+
+    column.name = value.trim();
+
+    setIsEditing(false);
+  }
   return (
     <Card className="w-full md:min-w-[260px] md:max-w-[400px] md:flex-shrink-0 shadow-md p-0">
       <CardHeader
@@ -76,34 +94,28 @@ function DropableColumn({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {config.icon}
-            <CardTitle className="text-sm font-semibold">
-              {column.name}
-            </CardTitle>
+            {isEditing ? (
+              <input
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+                onBlur={handleSave}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSave();
+                  if (e.key === "Escape") setIsEditing(false);
+                }}
+                autoFocus
+                className="w-full bg-transparent text-sm font-semibold outline-none border-b-2 border-transparent
+                focus:ring-1 transition-all placeholder-gray-400 text-white px-2 rounded-md"
+              />
+            ) : (
+              <CardTitle
+                className="text-sm font-semibold cursor-pointer"
+                onClick={() => setIsEditing(true)}
+              >
+                {column.name}
+              </CardTitle>
+            )}
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 rounded-md"
-              >
-                <MoreVertical className="h-4 w-4 text-gray-600" />
-              </Button>
-            </DropdownMenuTrigger>
-
-            <DropdownMenuContent
-              align="end"
-              className="w-40 p-1 rounded-lg shadow-md border bg-popover text-popover-foreground"
-            >
-              <DropdownMenuItem
-                className="flex items-center gap-2 px-2 py-2 text-sm cursor-pointer 
-              rounded-md text-red-500 hover:bg-red-50 outline-none"
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete Column
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </CardHeader>
       <CardContent className="space-y-2 pt-4 bg-gray-50/50 min-h-[400px] rounded-b-lg">
