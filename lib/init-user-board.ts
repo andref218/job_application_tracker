@@ -2,6 +2,7 @@ import connectDB from "./db";
 import { Board, Column } from "./models";
 import column from "./models/column";
 import jobApplications from "./models/jobApplications";
+import { seedExampleJobs } from "./seed-example-jobs";
 
 const DEFAULT_COLUMNS = [
   {
@@ -58,6 +59,8 @@ export async function initializeUserBoard(userId: string) {
     //Update the board with the new column ID's
     board.columns = columns.map((col) => col._id);
     await board.save();
+
+    await seedExampleJobs(userId, board._id.toString());
     return board;
   } catch (err) {
     throw err;
