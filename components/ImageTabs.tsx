@@ -7,9 +7,16 @@ import { useEffect, useRef } from "react";
 type Props = {
   activeIndex: number;
   setActiveIndex: React.Dispatch<React.SetStateAction<number>>;
+  intervalRef: React.MutableRefObject<NodeJS.Timeout | null>;
+  nextSlide: () => void;
 };
 
-const ImageTabs = ({ activeIndex, setActiveIndex }: Props) => {
+const ImageTabs = ({
+  activeIndex,
+  setActiveIndex,
+  intervalRef,
+  nextSlide,
+}: Props) => {
   const tabs = [
     {
       id: "organize",
@@ -28,24 +35,10 @@ const ImageTabs = ({ activeIndex, setActiveIndex }: Props) => {
     },
   ];
 
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  const nextSlide = () => {
-    setActiveIndex((prev) => (prev + 1) % tabs.length);
-  };
-
-  useEffect(() => {
-    intervalRef.current = setInterval(nextSlide, 4000);
-
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
-
   const handleTabClick = (index: number) => {
     setActiveIndex(index);
 
-    // reset do autoplay
+    // reset autoplay
     if (intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = setInterval(nextSlide, 4000);

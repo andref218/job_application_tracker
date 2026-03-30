@@ -146,6 +146,9 @@ const SignIn = () => {
               disabled={loading || Boolean(success)}
               className="w-full bg-primary text-white hover:bg-primary/90 transition cursor-pointer"
             >
+              {loading && (
+                <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              )}
               {loading ? "Signing in..." : "Sign In"}
             </Button>
 

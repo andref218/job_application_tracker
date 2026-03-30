@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ImageTabs from "@/components/ImageTabs";
 import { Button } from "@/components/ui/button";
 
@@ -21,6 +21,28 @@ const tabs = [
 
 export default function HeroCarousel() {
   const [activeIndex, setActiveIndex] = useState(0);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const nextSlide = () => {
+    setActiveIndex((prev) => (prev + 1) % tabs.length);
+  };
+
+  // start autoplay
+  useEffect(() => {
+    intervalRef.current = setInterval(nextSlide, 4000);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, []);
+
+  const handleTabClick = (index: number) => {
+    setActiveIndex(index);
+    // reset autoplay
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = setInterval(nextSlide, 4000);
+    }
+  };
 
   return (
     <>
@@ -29,6 +51,8 @@ export default function HeroCarousel() {
           <ImageTabs
             activeIndex={activeIndex}
             setActiveIndex={setActiveIndex}
+            intervalRef={intervalRef}
+            nextSlide={nextSlide}
           />
         </div>
       </div>
@@ -37,7 +61,7 @@ export default function HeroCarousel() {
         {tabs.map((tab, index) => (
           <Button
             key={tab.id}
-            onClick={() => setActiveIndex(index)}
+            onClick={() => handleTabClick(index)}
             className={`flex-1 rounded-lg px-5 py-6 text-sm font-medium transition-colors
                 whitespace-normal break-words ${
                   activeIndex === index

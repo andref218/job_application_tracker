@@ -18,8 +18,8 @@ export default async function Home() {
       <main className="flex-1 bg-blue-50">
         {/* Hero Section */}
         <section className="container mx-auto px-4 py-16 md:py-32">
-          <div className="flex flex-col lg:flex-row items-center gap-12">
-            <div className="lg:w-1/2">
+          <div className="flex flex-col lg:flex-row items-center gap-12 text-center lg:text-left">
+            <div className="lg:w-1/2 px-30 sm:px-4">
               <h1 className="text-black mb-6 text-6xl font-bold">
                 A better way to track your job applications.
               </h1>

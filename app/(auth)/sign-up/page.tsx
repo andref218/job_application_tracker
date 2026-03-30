@@ -16,11 +16,13 @@ import { useRouter } from "next/navigation";
 import { auth } from "@/lib/auth/auth-server";
 import { validateUserSignup } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
+import { Eye, EyeOff } from "lucide-react";
 
 const SignUp = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (formData: FormData) => {
@@ -148,15 +150,30 @@ const SignUp = () => {
               >
                 Password
               </label>
-              <input
-                name="password"
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                minLength={8}
-                required
-                className="rounded-lg border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-1  focus:border-primary transition"
-              />
+              <div className="relative">
+                <input
+                  name="password"
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  minLength={8}
+                  required
+                  className="w-full rounded-lg border border-gray-300 px-4 
+                  py-2.5 pr-10 focus:outline-none focus:ring-1 focus:border-primary transition"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 
+                  hover:text-gray-600 transition cursor-pointer"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
             </div>
             {error && (
               <div className="rounded-md bg-destructive/15 p-3 text-sm text-destructive">
@@ -176,6 +193,9 @@ const SignUp = () => {
               disabled={loading || Boolean(success)}
               className="w-full bg-primary text-white hover:bg-primary/90 transition cursor-pointer"
             >
+              {loading && (
+                <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              )}
               {loading ? "Signing up..." : "Sign Up"}
             </Button>
             <p className="text-sm text-gray-500 hover:text-gray-700 transition">
