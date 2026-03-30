@@ -3,10 +3,16 @@ import { auth } from "@/lib/auth/auth-server";
 export async function POST(req: Request) {
   const result = await auth.api.signOut({ headers: req.headers });
 
-  // sends Set-Cookie in the response to expire the cookie in the browser
+  const isProd = process.env.NODE_ENV === "production";
+
+  const cookieName = isProd
+    ? "__Secure-better-auth.session_token"
+    : "better-auth.session_token";
+
   const headers = new Headers({
-    "Set-Cookie":
-      "better-auth.session_token=; Path=/; HttpOnly; Max-Age=0; SameSite=Lax",
+    "Set-Cookie": `${cookieName}=; Path=/; HttpOnly; Max-Age=0; SameSite=Lax${
+      isProd ? "; Secure" : ""
+    }`,
     "Content-Type": "application/json",
   });
 

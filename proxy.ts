@@ -3,7 +3,9 @@ import { NextRequest, NextResponse } from "next/server";
 export function proxy(request: NextRequest) {
   const isDashboardPage = request.nextUrl.pathname.startsWith("/dashboard");
 
-  const sessionToken = request.cookies.get("better-auth.session_token")?.value;
+  const sessionToken =
+    request.cookies.get("better-auth.session_token")?.value ||
+    request.cookies.get("__Secure-better-auth.session_token")?.value;
 
   if (isDashboardPage && !sessionToken) {
     return NextResponse.redirect(new URL("/sign-in", request.url));
