@@ -17,6 +17,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "YourJobs",
   description: "Track your job applications efficiently",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({
