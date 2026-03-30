@@ -143,7 +143,7 @@ const SignIn = () => {
           <CardFooter className="flex flex-col items-center gap-3">
             <Button
               type="submit"
-              disabled={loading}
+              disabled={loading || Boolean(success)}
               className="w-full bg-primary text-white hover:bg-primary/90 transition cursor-pointer"
             >
               {loading ? "Signing in..." : "Sign In"}

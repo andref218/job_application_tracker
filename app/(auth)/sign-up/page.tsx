@@ -1,6 +1,5 @@
 "use client";
 
-import SubmitButton from "@/components/SubmitButton";
 import { signUp } from "@/lib/auth/auth-client";
 import {
   Card,
@@ -32,7 +31,9 @@ const SignUp = () => {
     // Server side validation in the actions/auth.ts
     const validation = await validateUserSignup(formData);
     if ("error" in validation) {
-      setError(validation.error || "Unknown error");
+      const errors = validation.error;
+      const firstError = Object.values(errors)[0]?.[0] || "Unknown error";
+      setError(firstError);
       setLoading(false);
       return;
     }
@@ -99,8 +100,6 @@ const SignUp = () => {
                   id="firstName"
                   type="text"
                   placeholder="Enter your first name"
-                  //value={firstName}
-                  //onChange={(e) => setFirstName(e.target.value)}
                   required
                   className="rounded-lg border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition"
                 />
@@ -117,8 +116,6 @@ const SignUp = () => {
                   id="lastName"
                   type="text"
                   placeholder="Enter your last name"
-                  //value={lastName}
-                  //onChange={(e) => setLastName(e.target.value)}
                   required
                   className="rounded-lg border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition"
                 />
@@ -138,8 +135,6 @@ const SignUp = () => {
                 id="email"
                 type="email"
                 placeholder="Enter your email"
-                //value={email}
-                //onChange={(e) => setEmail(e.target.value)}
                 required
                 className="rounded-lg border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition"
               />
@@ -158,9 +153,7 @@ const SignUp = () => {
                 id="password"
                 type="password"
                 placeholder="Enter your password"
-                //value={password}
-                //onChange={(e) => setPassword(e.target.value)}
-                //minLength={8}
+                minLength={8}
                 required
                 className="rounded-lg border border-gray-300 px-4 py-2.5 focus:outline-none focus:ring-1  focus:border-primary transition"
               />
@@ -180,7 +173,7 @@ const SignUp = () => {
           <CardFooter className="flex flex-col items-center gap-3">
             <Button
               type="submit"
-              disabled={loading}
+              disabled={loading || Boolean(success)}
               className="w-full bg-primary text-white hover:bg-primary/90 transition cursor-pointer"
             >
               {loading ? "Signing up..." : "Sign Up"}
