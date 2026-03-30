@@ -1,4 +1,4 @@
-import { Briefcase } from "lucide-react";
+import { Briefcase, GitBranch } from "lucide-react";
 import Link from "next/link";
 import { Button } from "./ui/button";
 import { getSession, signOut } from "@/lib/auth/auth-server";
@@ -20,8 +20,8 @@ export default async function NavBar() {
           href="/"
           className="flex items-center gap-2 text-lg font-bold text-primary"
         >
-          <Briefcase />
-          Job Tracker
+          <h3 className="text-xl">YourJobs</h3>
+          <GitBranch />
         </Link>
         <div className="flex items-center gap-2">
           {session?.user ? (
@@ -77,7 +77,7 @@ export default async function NavBar() {
               </Link>
               <Link href="/sign-up">
                 <Button className="bg-primary hover:bg-primary/90 cursor-pointer">
-                  Start for free
+                  Sign Up
                 </Button>
               </Link>
             </>

@@ -9,16 +9,17 @@ export default function SignOutButton() {
 
   const handleSignOut = async () => {
     await fetch("/api/auth/sign-out", { method: "POST" });
-    router.refresh();
-    setTimeout(() => {
-      router.push("/");
-    }, 50);
+
+    await router.refresh();
+
+    router.push("/");
   };
 
   return (
     <DropdownMenuItem
       onClick={handleSignOut}
-      className="flex gap-2 items-center cursor-pointer text-sm px-3 py-2 rounded-md hover:bg-gray-100 focus:bg-gray-200 outline-none"
+      className="flex gap-2 items-center cursor-pointer text-sm px-3 py-2 rounded-md 
+      hover:bg-gray-100 focus:bg-gray-200 outline-none"
     >
       <LogOut className="h-4 w-4" />
       Log out
