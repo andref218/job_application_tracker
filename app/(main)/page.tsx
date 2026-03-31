@@ -19,7 +19,7 @@ export default async function Home() {
         {/* Hero Section */}
         <section className="container mx-auto px-4 py-16 md:py-32">
           <div className="flex flex-col lg:flex-row items-center gap-12 text-center lg:text-left">
-            <div className="lg:w-1/2 px-30 sm:px-4">
+            <div className="lg:w-1/2 sm:px-4">
               <h1 className="text-black mb-6 text-6xl font-bold">
                 A better way to track your job applications.
               </h1>
@@ -69,7 +69,7 @@ export default async function Home() {
             <div className="mx-auto max-w-7xl ">
               <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-4 ">
                 <div className="flex flex-col">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 justify-between">
                     <h3 className="mb-3 text-2xl font-semibold text-black">
                       Organize Applications
                     </h3>
@@ -83,7 +83,7 @@ export default async function Home() {
                   </p>
                 </div>
                 <div className="flex flex-col">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 justify-between">
                     <h3 className="mb-3 text-2xl font-semibold text-black">
                       Track Progress
                     </h3>
@@ -98,7 +98,7 @@ export default async function Home() {
                   </p>
                 </div>
                 <div className="flex flex-col">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 justify-between">
                     <h3 className="mb-3 text-2xl font-semibold text-black">
                       Stay Organized
                     </h3>
@@ -113,7 +113,7 @@ export default async function Home() {
                   </p>
                 </div>
                 <div className="flex flex-col">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 justify-between">
                     <h3 className="mb-3 text-2xl font-semibold text-black">
                       Insights & Analytics
                     </h3>
