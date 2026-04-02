@@ -44,7 +44,8 @@ const SignUp = () => {
     const name = `${firstName} ${lastName}`;
 
     try {
-      // Create user client-side to ensure the authentication cookie is set in the browser
+      // Trigger signup from the client so Better Auth can create the user on its server
+      // and return the session cookie directly to the browser
       await signUp.email({ name, email, password });
 
       setSuccess("Account created successfully!");
