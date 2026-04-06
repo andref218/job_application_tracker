@@ -76,7 +76,7 @@ export default function CreateJobApplicationDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger>
-        <Button variant="outline">
+        <Button variant="outline" className="cursor-pointer">
           <Plus />
           Add Job
         </Button>

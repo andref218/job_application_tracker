@@ -39,7 +39,8 @@ const JobApplicationCard = ({ job, columns }: JobApplicationcardProps) => {
   const [isEditing, setIsEditing] = useState(false);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isPending, startTransition] = useTransition();
+  const [isDeleting, startDeleting] = useTransition();
+  const [isUpdating, startUpdating] = useTransition();
 
   const [formData, setFormData] = useState({
     company: job.company,
@@ -55,29 +56,32 @@ const JobApplicationCard = ({ job, columns }: JobApplicationcardProps) => {
 
   async function handleUpdate(e: React.FormEvent) {
     e.preventDefault();
-    try {
-      const result = await updateJobApplication(job._id, {
-        ...formData,
-        tags: formData.tags
-          .split(",")
-          .map((tag) => tag.trim())
-          .filter((tag) => tag.length > 0),
-      });
 
-      if (!result.error) {
-        toast.success("Job updated successfully!");
-        setIsEditing(false);
-      } else {
-        toast.error(result.error || "Failed to update job.");
+    startUpdating(async () => {
+      try {
+        const result = await updateJobApplication(job._id, {
+          ...formData,
+          tags: formData.tags
+            .split(",")
+            .map((tag) => tag.trim())
+            .filter((tag) => tag.length > 0),
+        });
+
+        if (!result.error) {
+          toast.success("Job updated successfully!");
+          setIsEditing(false);
+        } else {
+          toast.error(result.error || "Failed to update job.");
+        }
+      } catch (error) {
+        console.error("Failed to update job", error);
+        toast.error("Failed to update job");
       }
-    } catch (error) {
-      console.error("Failed to move job application", error);
-      toast.error("Failed to delete job");
-    }
+    });
   }
 
   async function handleDelete() {
-    startTransition(async () => {
+    startDeleting(async () => {
       try {
         const result = await deleteJobApplication(job._id);
         if (!result.error) {
@@ -411,10 +415,20 @@ const JobApplicationCard = ({ job, columns }: JobApplicationcardProps) => {
                 type="button"
                 variant="outline"
                 onClick={() => setIsEditing(false)}
+                className="cursor-pointer"
               >
                 Cancel
               </Button>
-              <Button type="submit">Save changes</Button>
+              <Button
+                type="submit"
+                disabled={isUpdating}
+                className="flex items-center gap-2 cursor-pointer"
+              >
+                {isUpdating && (
+                  <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                )}
+                {isUpdating ? "Saving..." : "Save changes"}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -433,7 +447,7 @@ const JobApplicationCard = ({ job, columns }: JobApplicationcardProps) => {
             <Button
               variant="outline"
               onClick={() => setIsDialogOpen(false)}
-              disabled={isPending}
+              disabled={isDeleting}
               className="cursor-pointer"
             >
               Cancel
@@ -441,16 +455,16 @@ const JobApplicationCard = ({ job, columns }: JobApplicationcardProps) => {
             <Button
               variant="destructive"
               onClick={handleDelete}
-              disabled={isPending}
+              disabled={isDeleting}
               className="flex items-center gap-2 cursor-pointer"
             >
-              {isPending && (
+              {isDeleting && (
                 <span
                   className="h-4 w-4 border-2 border-white border-t-transparent rounded-full 
                 animate-spin"
                 />
               )}
-              {isPending ? "Deleting..." : "Confirm"}
+              {isDeleting ? "Deleting..." : "Confirm"}
             </Button>
           </DialogFooter>
         </DialogContent>
