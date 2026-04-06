@@ -239,7 +239,7 @@ const JobApplicationCard = ({ job, columns }: JobApplicationcardProps) => {
       </AnimatePresence>
 
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
-        <DialogContent className="p-6 sm:max-w-2xl w-full">
+        <DialogContent className="p-6 sm:max-w-2xl w-full  max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Add Job Application</DialogTitle>
             <DialogDescription>Track a new job application</DialogDescription>
